@@ -4,6 +4,14 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover" />
   <title>PB 跑鞋部落</title>
+  <meta name="theme-color" content="#A8B5A2" />
+  <meta name="description" content="PB 跑鞋部落：拍照识别跑鞋性能、特点、适合脚型和价格区间。" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-title" content="PB 跑鞋部落" />
+  <link rel="manifest" href="./manifest.json" />
+  <link rel="icon" href="./icons/icon-192.png" />
+  <link rel="apple-touch-icon" href="./icons/icon-192.png" />
   <style>
     /* ============== 莫兰迪色板 ============== */
     :root{
@@ -290,8 +298,8 @@
 
 <script>
 /* ============== 配置区：把你的 key 填到这里 ============== */
-const DASHSCOPE_API_KEY = "sk-ws-H.REMYEMM.VHwG.MEYCIQCRXLczlvB1vkM6ZFCSLg4BKSWijwjQypvVYZPHWas6PAIhAOt34MsZRWa48zxa3wLfjc7xhfX69WfPfXZLX-sEZyvJ";
-const DEEPSEEK_API_KEY  = "sk-f88306d0b4764bff8a91291edfafa363";
+let DASHSCOPE_API_KEY = localStorage.getItem("PB_DASHSCOPE_API_KEY") || "";
+let DEEPSEEK_API_KEY  = localStorage.getItem("PB_DEEPSEEK_API_KEY") || "";
 /* ====================================================== */
 
 const $ = id => document.getElementById(id);
@@ -314,6 +322,22 @@ async function handleFile(file) {
   if (!file) return;
   showError("");
   showResultCards(false);
+
+  if (!DASHSCOPE_API_KEY) {
+    const key = prompt("首次使用需要输入通义千问 DashScope API Key（sk- 开头）。它只会保存在你当前手机/浏览器里，不会上传到 GitHub。");
+    if (!key) return showError("未输入通义千问 API Key，无法识别。");
+    DASHSCOPE_API_KEY = key.trim();
+    localStorage.setItem("PB_DASHSCOPE_API_KEY", DASHSCOPE_API_KEY);
+  }
+
+  if (!DEEPSEEK_API_KEY) {
+    const key = prompt("可选：输入 DeepSeek API Key 用于润色识别文案；如果不需要，直接点取消。");
+    if (key) {
+      DEEPSEEK_API_KEY = key.trim();
+      localStorage.setItem("PB_DEEPSEEK_API_KEY", DEEPSEEK_API_KEY);
+    }
+  }
+
   const previewUrl = URL.createObjectURL(file);
   $("preview").innerHTML = `<img src="${previewUrl}" alt="预览">`;
 
@@ -444,6 +468,12 @@ function showError(msg) {
   if (!msg) return $("err").classList.remove("show");
   $("err").textContent = msg;
   $("err").classList.add("show");
+}
+
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("./service-worker.js").catch(() => {});
+  });
 }
 </script>
 </body>
